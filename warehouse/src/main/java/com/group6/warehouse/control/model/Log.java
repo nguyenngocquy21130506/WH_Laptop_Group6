@@ -13,23 +13,29 @@ import javax.persistence.Table;
 @Table(name = "logs")
 public class Log {
 
-    @Id
+	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "event", length = 100, nullable = false)
-    private String event;
+    @Column(name = "id_config", nullable = false)
+    private int id_config;
+
+    @Column(name = "task_name", length = 255, nullable = false)
+    private String taskName;
 
     @Column(name = "status", length = 255, nullable = false)
     private String status;
 
-    @Column(name = "note", length = 1000)
-    private String note;
+    @Column(name = "message", columnDefinition = "TEXT")
+    private String message;
 
-    // Đổi tên cột thành created_at cho đồng bộ
+    @Column(name = "start_time", columnDefinition = "TIMESTAMP")
+    private LocalDateTime startTime;
+
+    @Column(name = "end_time", columnDefinition = "TIMESTAMP")
+    private LocalDateTime endTime;
+
     @Column(name = "created_at", columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;
 
-    // Getters and Setters
-    // Constructor (default và có tham số)
 }

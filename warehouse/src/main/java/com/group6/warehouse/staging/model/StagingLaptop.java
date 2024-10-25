@@ -35,18 +35,22 @@ public class StagingLaptop {
 
     @Column(name = "inventory_status", length = 255)
     private String inventoryStatus;
+    
+    @Column(name = "is_visible", length = 255)
+    private String isVisible;
 
     @Column(name = "stock_item_qty", length = 255)
     private String stockItemQty;
 
     @Column(name = "brand_id", length = 255)
     private String brandId;
+    @Column(name = "brand_name", length = 255)
+    private String brandName;
 
     @Column(name = "created_at", length = 255)
     private String createdAt;
 
-    @Column(name = "updated_at", length = 255)
-    private String updatedAt;
+ 
 
     // Getters and Setters
 }

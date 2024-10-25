@@ -41,8 +41,8 @@ public class DataFileConfig {
     @Column(name = "columns", length = 255)
     private String columns;
 
-    @Column(name = "extraction_frequency", length = 255)
-    private String extractionFrequency;
+    @Column(name = "extraction_frequency")
+    private int extractionFrequency;
 
     @Column(name = "created_at", columnDefinition = "TIMESTAMP")
     private LocalDateTime createdAt;
