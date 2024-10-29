@@ -39,7 +39,7 @@ public class MartDataSourceConfig {
             @Qualifier("martDataSource") DataSource dataSource) {
 
         Map<String, Object> properties = new HashMap<>();
-        properties.put("hibernate.hbm2ddl.auto", "update"); // Tự động tạo hoặc cập nhật bảng cho database mart
+        properties.put("hibernate.hbm2ddl.auto", "none"); // Tự động tạo hoặc cập nhật bảng cho database mart
         properties.put("hibernate.dialect", "org.hibernate.dialect.MySQL55Dialect");
 
         return builder

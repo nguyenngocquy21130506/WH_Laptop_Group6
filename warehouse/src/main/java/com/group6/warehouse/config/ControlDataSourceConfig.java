@@ -39,7 +39,7 @@ public class ControlDataSourceConfig {
             @Qualifier("controlDataSource") DataSource dataSource) {
 
         Map<String, Object> properties = new HashMap<>();
-        properties.put("hibernate.hbm2ddl.auto", "update"); // Tự động tạo hoặc cập nhật bảng cho database control
+        properties.put("hibernate.hbm2ddl.auto", "none"); // Tự động tạo hoặc cập nhật bảng cho database control
         properties.put("hibernate.dialect", "org.hibernate.dialect.MySQL55Dialect");
 
         return builder
