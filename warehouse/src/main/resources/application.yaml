@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: "WH_Laptop"
+  datasource:
+
+
+custom:
+  file:
+    crawlPath: "D:/DoanWarehouse/warehouse/src/main/java/com/group6/warehouse/script/crawldata.py"
