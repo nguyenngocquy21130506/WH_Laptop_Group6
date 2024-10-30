@@ -35,11 +35,12 @@ params = {
 }
 
 # Nhận đường dẫn file CSV và tên file đầu ra từ tham số dòng lệnh
-if len(sys.argv) < 2:
+if len(sys.argv) < 3:
     print("Vui lòng cung cấp đường dẫn đến file CSV và tên file CSV đầu ra.")
     sys.exit(1)
 
-output_csv_file = sys.argv[1]
+output_csv_path = sys.argv[1]
+output_csv_file = sys.argv[2]
 
 
 productId = []
@@ -54,7 +55,7 @@ for i in range(1, 11):
     time.sleep(random.randrange(3, 10))
 
 df = pd.DataFrame(productId)
-df.to_csv('list_id_laptop.csv', index=False)
+df.to_csv(f'{output_csv_path}list_id_laptop.csv', index=False)
 
 """GetNecessoryData"""
 
@@ -202,7 +203,7 @@ def parser_product(json):
     return d
 
 # Đọc danh sách ID sản phẩm từ file CSV
-df_id = pd.read_csv('list_id_laptop.csv')
+df_id = pd.read_csv(f'{output_csv_path}list_id_laptop.csv')
 p_ids = df_id.id.to_list()
 print(p_ids)
 result = []
@@ -225,4 +226,4 @@ for pid in tqdm(p_ids, total=len(p_ids)):
 # Lưu dữ liệu đã crawl vào file CSV
 df_product = pd.DataFrame(result)
 # df_product.to_csv('crawled_data_laptop.csv', index=False)
-df_product.to_csv(f'D:\\toolCrawlDataInTiki\\testUrl\\{output_csv_file}.csv', sep=';', index=False)
+df_product.to_csv(f'{output_csv_path}{output_csv_file}', sep=';', index=False)
