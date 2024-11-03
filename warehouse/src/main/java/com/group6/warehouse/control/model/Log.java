@@ -1,41 +1,42 @@
 package com.group6.warehouse.control.model;
 
-import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import java.time.LocalDateTime;
+import javax.persistence.*;
 
 @Entity
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "logs")
 public class Log {
-
-	@Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @Column(name = "id_config", nullable = false)
-    private int id_config;
-
-    @Column(name = "task_name", length = 255, nullable = false)
+    private Long idConfig;
+    @Column(name = "task_name", length = 100, nullable = false)
     private String taskName;
-
     @Column(name = "status", length = 255, nullable = false)
     private String status;
-
-    @Column(name = "message", columnDefinition = "TEXT")
+    @Column(name = "message", length = 1000)
     private String message;
-
-    @Column(name = "start_time", columnDefinition = "TIMESTAMP")
-    private LocalDateTime startTime;
-
-    @Column(name = "end_time", columnDefinition = "TIMESTAMP")
-    private LocalDateTime endTime;
-
-    @Column(name = "created_at", columnDefinition = "TIMESTAMP")
+    @Column(name = "level", length = 100)
+    private LevelEnum level;
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+    @Column(name = "end_time")
+    private LocalDateTime endTime;
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.endTime = now; // Nếu bạn muốn thiết lập endTime ngay tại lúc tạo
+    }
 
 }

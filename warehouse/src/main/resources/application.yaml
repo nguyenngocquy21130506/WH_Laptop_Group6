@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: "WH_Laptop"
+  datasource:
+    url: "jdbc:mysql://localhost:3306/control?useSSL=false&serverTimezone=UTC"
+    username: "root"
+    password: "root"
+    driver-class-name: "com.mysql.cj.jdbc.Driver"
+
+  jpa:
+    hibernate:
+      ddl-auto: "none"  # Tự động tạo hoặc cập nhật bảng cho database control
+    properties:
+      hibernate.dialect: "org.hibernate.dialect.MySQL55Dialect"
+
+custom:
+  file:
+    crawlPath: "D:/DoanWarehouse/warehouse/src/main/java/com/group6/warehouse/script/crawldata.py"
+
+mailServer:
+  host: smtp.gmail.com
+  port: 587
+  email: 21130506@st.hcmuaf.edu.vn
+  password: "aysl jlpt mhec ypbq"
+  protocol: smtp
+  isSSL: false
+
+email:
+  user:
+    hostA: "21130562@st.hcmuaf.edu.vn"
