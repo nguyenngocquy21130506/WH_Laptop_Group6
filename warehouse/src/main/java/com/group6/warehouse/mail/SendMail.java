@@ -1,25 +1,23 @@
 package com.group6.warehouse.mail;
 
 import com.group6.warehouse.control.model.Log;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 public class SendMail {
+    @Autowired
     JavaMailSender javaMailSender;
 
     public boolean sendEmail(String recipient, Log log) throws MessagingException {
         MimeMessage mimeMailMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMailMessage, true, "utf-8");
 
-        // Tạo nội dung HTML cho thông báo log lỗi
         String html = "<html>" +
                 "<head>" +
                 "<style>" +
@@ -59,6 +57,8 @@ public class SendMail {
             javaMailSender.send(mimeMailMessage);
             return true;
         } catch (Exception e) {
+            // In thông báo chi tiết lỗi
+            System.err.println("Lỗi khi gửi email: " + e.getMessage());
             e.printStackTrace();
             return false;
         }

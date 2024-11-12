@@ -17,11 +17,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Component
-public class TaskScheduler {
+public class TaskSchedulerSystem {
 
     @Value("${email.user.hostA}")
     String emailA;
@@ -36,64 +37,77 @@ public class TaskScheduler {
 
     @Value("${custom.file.crawlPath}")
     private String pathScript;
-
-    @PostConstruct
+    // Chạy vào lúc 0:00 các ngày Thứ Hai, Thứ Tư, Thứ Sáu
+    @Scheduled(cron = "0 00 00 * * 1,3,5")
     public void TaskScheduler() {
         executeTask();
     }
 
     public void executeTask() {
+        System.out.println("Scheduled task executed at: " + LocalDateTime.now());
         try {
             runExternalExecutable();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public void runExternalExecutable() throws IOException {
-        DataFileConfig dataFileConfig = dataFileConfigRepository.findById(1L).orElse(null);
+    public void runExternalExecutable() throws IOException, MessagingException {
+        DataFileConfig dataFileConfig = null;
+        try {
+            dataFileConfig = dataFileConfigRepository.findById(1L).orElse(null);
+        } catch (Exception e) {
+            Log log = Log.builder()
+                    .idConfig(1L)
+                    .taskName("Get data config")
+                    .status("failure")
+                    .message("Connect to database control failed! Check your database or network")
+                    .level(LevelEnum.ERROR)
+                    .createdAt(Timestamp.valueOf(LocalDateTime.now()))
+                    .build();
+            sendMail.sendEmail(emailA, log);
+            e.printStackTrace();
+            return;
+        }
         LocalDate today = LocalDate.now();
         String date = String.format("%d_%d_%d", today.getDayOfMonth(), today.getMonthValue(), today.getYear());
         String pathDestination = dataFileConfig.getDirectoryFile();
         String fileDestination = dataFileConfig.getFilename() + date + "." + dataFileConfig.getFormat().toUpperCase();
 
-        // Tạo ProcessBuilder để chạy script Python
         ProcessBuilder processBuilder = new ProcessBuilder("python", pathScript, pathDestination, fileDestination);
-        processBuilder.redirectErrorStream(true); // Gộp luồng lỗi vào luồng đầu ra
-
-        // Chạy tiến trình
-        Process process = processBuilder.start();
+        processBuilder.redirectErrorStream(true);
+        System.out.println("Loading...");
         Log log = Log.builder()
                 .idConfig(1L)
                 .taskName("Crawl data")
-                .status("Process")
+                .status("Processing")
                 .message("Crawl data from Tiki.vn")
                 .level(LevelEnum.INFO)
                 .build();
         logRepository.save(log);
-        // Kiểm tra đầu ra của tiến trình
+        Process process = processBuilder.start();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                System.out.println(line); // In ra từng dòng kết quả
+                System.out.println(line);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        // Chờ đến khi tiến trình kết thúc và thông báo
         int exitCode;
         try {
             exitCode = process.waitFor();
-            System.out.println("Python script executed with exit code: " + exitCode); // Thông báo sau khi hoàn thành
+            System.out.println("Python script executed with exit code: " + exitCode);
             if (exitCode == 0) {
-                log.setStatus("Success");
-                log.setEndTime(LocalDateTime.now());
+                log.setStatus("Successful");
+                log.setEndTime(Timestamp.valueOf(LocalDateTime.now()));
                 logRepository.save(log);
+                sendMail.sendEmail(emailA, log);
                 System.out.println("Script executed successfully!");
             } else {
-                log.setStatus("Failed");
-                log.setEndTime(LocalDateTime.now());
+                log.setStatus("Failure");
                 log.setLevel(LevelEnum.ERROR);
                 logRepository.save(log);
                 System.out.println("Script execution failed with exit code: " + exitCode);
@@ -105,8 +119,7 @@ public class TaskScheduler {
                 }
             }
         } catch (InterruptedException e) {
-            log.setStatus("Failed");
-            log.setEndTime(LocalDateTime.now());
+            log.setStatus("Failure");
             log.setLevel(LevelEnum.ERROR);
             logRepository.save(log);
             try {
@@ -117,5 +130,9 @@ public class TaskScheduler {
             }
             e.printStackTrace();
         }
+    }
+
+    public static void main(String[] args) {
+        System.out.println(LocalDateTime.now());
     }
 }
