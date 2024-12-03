@@ -27,7 +27,6 @@ spring:
 custom:
   file:
     crawlPath: "D:/DoanWarehouse/warehouse/src/main/java/com/group6/warehouse/script/crawldata.py"
-#    crawlPath: "D:/DoanWarehouse/warehouse/src/main/java/com/group6/warehouse/script/ad.txt"
 
 mailServer:
   host: smtp.gmail.com
@@ -40,3 +39,7 @@ mailServer:
 email:
   user:
     hostA: "nnquy2k3@gmail.com"
+
+retry:
+  attempts: 5
+  delay: 60000
