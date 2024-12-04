@@ -6,12 +6,23 @@ spring:
     username: "root"
     password: ""
     driver-class-name: "com.mysql.cj.jdbc.Driver"
-
   jpa:
     hibernate:
       ddl-auto: "none"  # Tự động tạo hoặc cập nhật bảng cho database control
     properties:
       hibernate.dialect: "org.hibernate.dialect.MySQL55Dialect"
+  main:
+    allow-bean-definition-overriding: true
+  task:
+    scheduling:
+      pool:
+        size: 2
+  logging:
+    level:
+      org.springframework.scheduling: DEBUG
+      org.springframework.scheduling.annotation: DEBUG
+  jackson:
+    time-zone: "Asia/Ho_Chi_Minh"
 
 custom:
   file:
@@ -20,11 +31,15 @@ custom:
 mailServer:
   host: smtp.gmail.com
   port: 587
-  email: 21130506@st.hcmuaf.edu.vn
-  password: "aysl jlpt mhec ypbq"
+  email: "21130506@st.hcmuaf.edu.vn"
+  password: "pzmt xoum kzqs glcb"
   protocol: smtp
   isSSL: false
 
 email:
   user:
-    hostA: "21130562@st.hcmuaf.edu.vn"
+    hostA: "nnquy2k3@gmail.com"
+
+retry:
+  attempts: 5
+  delay: 60000

@@ -24,9 +24,7 @@ public class MailConfig {
     private String password;
 
     @Value("${mailServer.isSSL}")
-    private String isSSL;
-    //    JavaMailSender is an interface for sending emails.
-//    JavaMailSenderImpl is an implementation of JavaMailSender used to send simple emails.
+    private Boolean isSSL;
     @Bean
     JavaMailSender getJavaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
