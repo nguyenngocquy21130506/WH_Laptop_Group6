@@ -7,6 +7,8 @@
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
+    overflow-x: hidden;
+    min-height: 500px;
 }
 
 .container {
@@ -75,4 +77,25 @@ h1 {
 
 .add-to-cart:hover {
     background-color: #218838;
+}
+
+.info{
+    width: 45%;
+    min-height: 200px;
+    background-color: rgb(238, 239, 255);;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: left;
+    line-height: 2;
+    box-shadow: 1px 1px 4px 1px rgba(0, 0, 0, 0.1);
+}
+
+.right{
+    width: 20%;
+    background-color: rgb(238, 239, 255);;
+    min-height: 200px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 1px 1px 4px 1px rgba(0, 0, 0, 0.1);
+    text-wrap: wrap;
 }
