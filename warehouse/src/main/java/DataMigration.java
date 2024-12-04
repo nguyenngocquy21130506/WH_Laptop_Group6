@@ -95,7 +95,7 @@ public class DataMigration {
 
     // Ghi log kết quả vào control DB
     private void logResult(int idConfig, String taskName, String status, String message, LocalDateTime startTime, LocalDateTime endTime) {
-        String sql = "INSERT INTO logs (id_config, task_name, status, message, start_time, end_time, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO logs (id_config, task_name, status, message, end_time, created_at) VALUES ( ?, ?, ?, ?, ?, ?)";
         try (Connection conn = connectToControlDB();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -103,9 +103,8 @@ public class DataMigration {
             pstmt.setString(2, taskName);
             pstmt.setString(3, status);
             pstmt.setString(4, message);
-            pstmt.setTimestamp(5, Timestamp.valueOf(startTime));
-            pstmt.setTimestamp(6, Timestamp.valueOf(endTime));
-            pstmt.setTimestamp(7, Timestamp.valueOf(LocalDateTime.now())); // Ghi thời gian hiện tại vào created_at
+            pstmt.setTimestamp(5, Timestamp.valueOf(endTime));
+            pstmt.setTimestamp(6, Timestamp.valueOf(LocalDateTime.now())); // Ghi thời gian hiện tại vào created_at
 
             pstmt.executeUpdate();
             System.out.println("Log entry successfully added to logs table.");
