@@ -27,7 +27,7 @@ spring:
 custom:
   file:
     crawlPath: "D:/DoanWarehouse/warehouse/src/main/java/com/group6/warehouse/script/crawldata.py"
-
+    statowhPath: "D:/workspace/DataWare/WH_Laptop_Group6/warehouse/src/main/java/com/group6/warehouse/script/TransformDataScript.jar"
 mailServer:
   host: smtp.gmail.com
   port: 587
