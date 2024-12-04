@@ -1,12 +1,27 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './Home.css';
-import axios from 'axios';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "./Home.css";
+import axios from "axios";
 
 const laptopData = [
-  { id: 1, name: "Laptop A", price: "$1,000", imageUrl: "https://via.placeholder.com/150" },
-  { id: 2, name: "Laptop B", price: "$1,200", imageUrl: "https://via.placeholder.com/150" },
-  { id: 3, name: "Laptop C", price: "$1,500", imageUrl: "https://via.placeholder.com/150" },
+  {
+    id: 1,
+    name: "Laptop A",
+    price: "$1,000",
+    imageUrl: "https://via.placeholder.com/150",
+  },
+  {
+    id: 2,
+    name: "Laptop B",
+    price: "$1,200",
+    imageUrl: "https://via.placeholder.com/150",
+  },
+  {
+    id: 3,
+    name: "Laptop C",
+    price: "$1,500",
+    imageUrl: "https://via.placeholder.com/150",
+  },
 ];
 
 interface Laptop {
@@ -17,8 +32,8 @@ interface Laptop {
 }
 
 function Home() {
-  const [products,setProducts] = useState();
-  const [productsToDay,setProductsToDay] = useState();
+  const [products, setProducts] = useState();
+  const [productsToDay, setProductsToDay] = useState();
   const navigate = useNavigate();
 
   const handleProductClick = (id: number) => {
@@ -27,28 +42,23 @@ function Home() {
 
   return (
     <div className="container">
-      <h1>Danh sách Laptop hôm nay</h1>
+      <h1>Danh sách Laptop</h1>
       <div className="product-grid">
         {laptopData.map((laptop) => (
-          <div className="product-card" key={laptop.id} onClick={() => handleProductClick(laptop.id)}>
-            <img src={laptop.imageUrl} alt={laptop.name} className="product-image" />
+          <div
+            className="product-card"
+            key={laptop.id}
+            onClick={() => handleProductClick(laptop.id)}
+          >
+            <img
+              src={laptop.imageUrl}
+              alt={laptop.name}
+              className="product-image"
+            />
             <div className="product-info">
               <h2 className="product-name">{laptop.name}</h2>
               <p className="product-price">{laptop.price}</p>
-              <button className="add-to-cart">Thêm vào giỏ hàng</button>
-            </div>
-          </div>
-        ))}
-      </div>
-      <h1>Danh sách toàn bộ Laptop</h1>
-      <div className="product-grid">
-        {laptopData.map((laptop) => (
-          <div className="product-card" key={laptop.id} onClick={() => handleProductClick(laptop.id)}>
-            <img src={laptop.imageUrl} alt={laptop.name} className="product-image" />
-            <div className="product-info">
-              <h2 className="product-name">{laptop.name}</h2>
-              <p className="product-price">{laptop.price}</p>
-              <button className="add-to-cart">Thêm vào giỏ hàng</button>
+              <button className="add-to-cart">Chi tiết sản phẩm</button>
             </div>
           </div>
         ))}
