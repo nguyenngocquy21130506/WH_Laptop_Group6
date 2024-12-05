@@ -41,7 +41,7 @@ if len(sys.argv) < 3:
     # Lấy ngày hiện tại
     today = datetime.today().strftime('%d_%m_%Y')
     print("Không đủ tham số, sử dụng giá trị mặc định.")
-    output_csv_path = "D:"  # Thay bằng giá trị mặc định của bạn
+    output_csv_path = "D:/"  # Thay bằng giá trị mặc định của bạn
     output_csv_file = f"manualData_{today}.csv"  # Thay bằng tên file đầu ra mặc định của bạn
 else:
     output_csv_path = sys.argv[1]

@@ -182,9 +182,7 @@ public class TaskSchedulerSystem {
             String fileDestination = dataFileConfig.getFilename() + dataFileConfig.getName().toUpperCase() + "_" + date + "." + dataFileConfig.getFormat().toUpperCase();
 
             ProcessBuilder processBuilder = null;
-            if(dataFileConfig.getName().equals("tiki")){
-                processBuilder = new ProcessBuilder("python", pathScript, pathDestination, fileDestination);
-            }
+            processBuilder = new ProcessBuilder("python", pathScript, pathDestination, fileDestination);
             processBuilder.redirectErrorStream(true);
             System.out.println("Loading...");
             // execute file script to crawl data

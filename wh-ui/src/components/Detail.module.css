@@ -2,7 +2,8 @@
     width: 31%;
     height: auto;
     border-radius: 10px;
-    background-color: rgb(238, 239, 255);
+    background-color: white;
+    /* background-color: rgb(238, 239, 255); */
     margin-top: 30px;
     padding: 10px;
     min-height: 300px;
@@ -21,5 +22,21 @@
 .price{
     font-size: 25px;
     font-weight: 700;
-    color: blue;
+    color: #007bff;
+    padding-top: 20px;
+}
+.discount{
+    font-size: 20px;
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+    text-decoration-color: red;
+    font-weight: 500;
+    color: #919191;
+    padding-top: 25px;
+    padding-left: 20px;
+}
+
+.imageProduct{
+    width: 350px;
+    height: 350px;
 }
