@@ -4,7 +4,7 @@ spring:
   datasource:
     url: "jdbc:mysql://localhost:3306/control?useSSL=false&serverTimezone=UTC"
     username: "root"
-    password: ""
+    password: "root"
     driver-class-name: "com.mysql.cj.jdbc.Driver"
   jpa:
     hibernate:
@@ -27,6 +27,9 @@ spring:
 custom:
   file:
     crawlPath: "D:/DoanWarehouse/warehouse/src/main/java/com/group6/warehouse/script/crawldata.py"
+    aggregatePath: "D:/ServerWH/WH_Laptop_Group6/warehouse/src/main/java/com/group6/warehouse/script/transformAggregate.jar"
+
+
 
 mailServer:
   host: smtp.gmail.com
