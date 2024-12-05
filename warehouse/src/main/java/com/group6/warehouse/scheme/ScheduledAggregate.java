@@ -20,7 +20,7 @@ public class ScheduledAggregate {
     private int retryCount = 0;  // Biến đếm số lần thử lại
 
     // Lập lịch
-    @Scheduled(cron = "0 40 23 * * ?")
+    @Scheduled(cron = "0 10 10 * * ?")
     public void executeAggregateJar() {
         try {
             System.out.println("Scheduled task started at: " + LocalDateTime.now());  // In ra thời điểm bắt đầu
