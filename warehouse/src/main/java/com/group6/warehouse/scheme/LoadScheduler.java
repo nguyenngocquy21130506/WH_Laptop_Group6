@@ -9,12 +9,12 @@ import java.time.LocalDateTime;
 @Component
 public class LoadScheduler {
     // Đường dẫn tới file JAR của bạn
-    private static final String SCRIPT_PATH = "D:\\Nhom6_WH\\WH_Laptop_Group6\\warehouse\\src\\main\\java\\com\\group6\\warehouse\\script\\LoadToStagingScript.jar";
+    private static final String SCRIPT_PATH = "D:\\ServerWH\\WH_Laptop_Group6\\warehouse\\src\\main\\java\\com\\group6\\warehouse\\script\\LoadToStagingScript.jar";
     private static final int MAX_RETRY_DURATION = 60; // Thời gian retry tối đa là 60 phút
     private static final int RETRY_INTERVAL = 10; // Thử lại mỗi 10 phút
     /**
-     * Lập lịch chạy script vào lúc 9:00 sáng thứ 2, thứ 4, thứ 6 hàng tuần.
-     * Cron expression: "0 0 9 * * MON,WED,FRI"
+     * Lập lịch chạy script vào lúc 00:30 sáng thứ 2, thứ 4, thứ 6 hàng tuần.
+     * Cron expression: "0 30 0 * * MON,WED,FRI"
      */
     @Scheduled(cron = "0 37 22 * * MON,WED,FRI")
     public void runLoadToStagingScript() {
