@@ -29,7 +29,7 @@ public class Log {
     @Column(name = "message", length = 1000)
     private String message;
     @Column(name = "level", length = 100)
-    private LevelEnum level;
+    private int level;
     @Column(name = "created_at", updatable = false)
     private Timestamp createdAt;
     @Column(name = "end_time")
