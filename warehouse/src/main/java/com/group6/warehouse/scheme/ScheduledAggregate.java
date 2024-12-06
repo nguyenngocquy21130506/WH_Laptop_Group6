@@ -20,6 +20,7 @@ public class ScheduledAggregate {
     private int retryCount = 0;  // Biến đếm số lần thử lại
 
     // Lập lịch
+//    @Scheduled(cron = "0 35 0 * * 2,4,6")
     @Scheduled(cron = "0 10 10 * * ?")
     public void executeAggregateJar() {
         try {
