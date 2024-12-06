@@ -25,7 +25,8 @@ h1 {
 
 .product-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr); /* Hiển thị 5 item trên 1 hàng */
+    grid-template-columns: repeat(5, 1fr);
+    /* Hiển thị 5 item trên 1 hàng */
     gap: 20px;
 }
 
@@ -60,9 +61,9 @@ h1 {
     margin-bottom: 10px;
 }
 
-.product-price {
+.price {
     font-size: 1.1rem;
-    color: #888;
+    color: #3476f1;
     margin-bottom: 20px;
 }
 
@@ -79,10 +80,11 @@ h1 {
     background-color: #218838;
 }
 
-.info{
+.info {
     width: 45%;
     min-height: 200px;
-    background-color: rgb(238, 239, 255);;
+    background-color: white;
+    ;
     padding: 20px;
     border-radius: 10px;
     text-align: left;
@@ -90,12 +92,38 @@ h1 {
     box-shadow: 1px 1px 4px 1px rgba(0, 0, 0, 0.1);
 }
 
-.right{
+.right {
     width: 20%;
-    background-color: rgb(238, 239, 255);;
+    background-color: white;
+    ;
     min-height: 200px;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 1px 1px 4px 1px rgba(0, 0, 0, 0.1);
     text-wrap: wrap;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.page-button {
+    padding: 10px 15px;
+    margin: 0 5px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.page-button.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.page-button:hover {
+    background-color: #ddd;
 }

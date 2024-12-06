@@ -1,21 +1,27 @@
 package com.group6.warehouse.controller;
 
+import com.group6.warehouse.dao.ProductDAO;
+import com.group6.warehouse.model.Product;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+import java.util.List;
+
+@RestController
 @RequestMapping("/api")
 public class ProductController {
 
-    @PostMapping("/productsToDay")
-    public String getProductToDay() {
-        // get data from martdb by repository
-        return "redirect:/products";
+    private ProductDAO productDAO = new ProductDAO();
+    @PostMapping("/productsToDay/{index}")
+    public List<Product> getProductToDay(@PathVariable int index) {
+        return productDAO.getAllProduct(index);
     }
 
-    @PostMapping("/products")
-    public String getAllProduct() {
-        return "redirect:/products";
+    @PostMapping("/productDetail/{id}")
+    public Product getAllProduct(@PathVariable int id) {
+        return productDAO.getProductById(id);
     }
 }
