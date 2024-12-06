@@ -62,13 +62,13 @@ function Home() {
       <div style={{ marginTop: "20px", display:"flex", justifyContent:"space-around" }}>
         <div className="info">
           <p>
-            <strong>Giá bán trung bình:</strong> 1 VND
+            <strong>Giá bán trung bình mỗi sản phẩm:</strong> 1 VND
           </p>
           <p>
             <strong>Số lượng sản phẩm:</strong> 2
           </p>
           <p>
-            <strong>Số lượng nhãn hiệu:</strong> 2
+            <strong>Số lượng thương hiệu:</strong> 2
           </p>
         </div>
         <div className="right">

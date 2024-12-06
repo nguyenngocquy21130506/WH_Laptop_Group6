@@ -1,49 +1,69 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import a from "./Detail.module.css";
+import styles from "./Detail.module.css";
+import axios from "axios";
 
-const laptopData = [
-  {
-    id: 1,
-    name: "Laptop A",
-    price: "$1,000",
-    imageUrl: "https://via.placeholder.com/150",
-  },
-  {
-    id: 2,
-    name: "Laptop B",
-    price: "$1,200",
-    imageUrl: "https://via.placeholder.com/150",
-  },
-  {
-    id: 3,
-    name: "Laptop C",
-    price: "$1,500",
-    imageUrl: "https://via.placeholder.com/150",
-  },
-];
+interface Laptop {
+  id: number;
+  products_name: string;
+  price: number;
+  brand_name: string;
+  short_description: string;
+  discount: number;
+}
 
 function ProductDetail() {
+  const [product, setProduct] = useState<Laptop>();
   const { id } = useParams();
-  const product = laptopData.find((laptop) => laptop.id === Number(id));
+
+  useEffect(() => {
+    const url = `http://localhost:8080/api/productDetail/${id}`;
+    axios.post(url).then((response) => {
+      setProduct(response.data);
+    });
+  });
 
   if (!product) {
     return <h2>Product not found!</h2>;
   }
 
   return (
-    <div style={{display:"flex", justifyContent: "space-around", width:"90%", marginLeft: "5%",}}>
-      <div className={a.col}>
-        <img src={product.imageUrl} alt={product.name} />
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-around",
+        width: "90%",
+        marginLeft: "5%",
+      }}
+    >
+      <div className={styles.col}>
+        <img src="/imgs/laptop.png" alt="" className={styles.imageProduct} />
       </div>
-      <div className={a.col}>
-        <h1>{product.name}</h1>
-        <p>Brand: </p>
-        <p>Description: </p>
-        <p className={a.price}>Price: {product.price}</p>
+      <div className={styles.col}>
+        <p style={{ fontSize: "18px", fontWeight: "700", color: "red" }}>
+          Thương hiệu: {product.brand_name}
+        </p>
+        <b style={{ fontSize: "20px", color: "#007bff" }}>
+          {product.products_name}
+        </b>
+        <p>Mô tả: {product.short_description}</p>
+        <div style={{display:"flex"}}>
+          <p className={styles.price}>
+            {new Intl.NumberFormat("vi-VN", {
+              style: "currency",
+              currency: "VND",
+            }).format(product.price)}
+          </p>
+          <p className={styles.discount}>
+            {new Intl.NumberFormat("vi-VN", {
+              style: "currency",
+              currency: "VND",
+            }).format(product.price + product.discount)}
+          </p>
+        </div>
         {/* Add more details here */}
       </div>
-      <div className={a.col}></div>
+      <div className={styles.col}></div>
     </div>
   );
 }
