@@ -14,6 +14,7 @@ import requests
 import time
 import random
 import pandas as pd
+from datetime import datetime
 
 headers = {
     "User-Agent" : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
@@ -36,11 +37,15 @@ params = {
 
 # Nhận đường dẫn file CSV và tên file đầu ra từ tham số dòng lệnh
 if len(sys.argv) < 3:
-    print("Vui lòng cung cấp đường dẫn đến file CSV và tên file CSV đầu ra.")
-    sys.exit(1)
-
-output_csv_path = sys.argv[1]
-output_csv_file = sys.argv[2]
+    # Nếu không đủ tham số, sử dụng giá trị mặc định
+    # Lấy ngày hiện tại
+    today = datetime.today().strftime('%d_%m_%Y')
+    print("Không đủ tham số, sử dụng giá trị mặc định.")
+    output_csv_path = "D:"  # Thay bằng giá trị mặc định của bạn
+    output_csv_file = f"manualData_{today}.csv"  # Thay bằng tên file đầu ra mặc định của bạn
+else:
+    output_csv_path = sys.argv[1]
+    output_csv_file = sys.argv[2]
 
 
 productId = []
@@ -221,7 +226,7 @@ for pid in tqdm(p_ids, total=len(p_ids)):
         print(f"Lỗi kết nối khi lấy dữ liệu sản phẩm {pid}: {e}")
 
     # Để tránh bị chặn, sử dụng thời gian ngủ ngẫu nhiên giữa các yêu cầu
-    time.sleep(random.uniform(3, 5))
+    time.sleep(random.uniform(0.5, 2))
 
 # Lưu dữ liệu đã crawl vào file CSV
 df_product = pd.DataFrame(result)
