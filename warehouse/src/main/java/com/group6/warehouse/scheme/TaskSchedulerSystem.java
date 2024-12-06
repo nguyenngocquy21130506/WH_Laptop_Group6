@@ -46,6 +46,8 @@ public class TaskSchedulerSystem {
     @Value("${retry.delay}")
     private int delay;
 
+    private int num = 0;
+
     @PostConstruct
     public void init() {
         System.out.println("Start connect to DB");
@@ -72,8 +74,8 @@ public class TaskSchedulerSystem {
 
     // Chạy vào lúc 0:00 các ngày Thứ Hai, Thứ Tư, Thứ Sáu
     // syntax : giây phút giờ mọi ngày mọi tháng thứ 2,4,6
-    @Scheduled(cron = "0 07 22 * * 1,3,5")
-    public void TaskScheduler() {
+    @Scheduled(cron = "0 10 14 * * 1,3,5")
+    public void TaskSchedulepr() {
         // check log in day
         try {
             PreparedStatement stmt = connection.prepareStatement("select id from logs where id_config = ? and status = ? and year(created_at) = ? and month(created_at) = ? and day(created_at) = ?");
@@ -96,17 +98,17 @@ public class TaskSchedulerSystem {
     }
 
     public void retryTask() {
-        while (retryCount < retryCount) {
+        while (num < retryCount) {
             try {
-                retryCount++;
-                System.out.println("Retry attempt " + retryCount + "...");
+                num++;
+                System.out.println("Retry attempt " + num + "...");
                 Thread.sleep(delay);
                 executeTask();
-                System.out.println("Task executed successfully on attempt " + retryCount);
+                System.out.println("Task executed successfully on attempt " + num);
                 break;
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                if (retryCount == 5) {
+                if (num == 5) {
                     System.out.println("Maximum retry attempts reached. Stopping.");
                     break;
                 }

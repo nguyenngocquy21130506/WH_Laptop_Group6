@@ -21,7 +21,7 @@ public class ScheduledAggregate {
 
     // Lập lịch
 //    @Scheduled(cron = "0 35 0 * * 2,4,6")
-    @Scheduled(cron = "0 10 10 * * ?")
+    @Scheduled(cron = "0 25 14 * * ?")
     public void executeAggregateJar() {
         try {
             System.out.println("Scheduled task started at: " + LocalDateTime.now());  // In ra thời điểm bắt đầu
