@@ -19,7 +19,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Component
-public class TaskSchedulerSystem {
+public class ScheduledCrawl {
 
     @Value("${email.user.hostA}")
     String emailA;
@@ -46,35 +46,16 @@ public class TaskSchedulerSystem {
     @Value("${retry.delay}")
     private int delay;
 
-    @PostConstruct
-    public void init() {
-        System.out.println("Start connect to DB");
-        try {
-            this.connection = DriverManager.getConnection(url, username, password);
-        } catch (SQLException e) {
-            Log log = Log.builder()
-                    .idConfig(1L)
-                    .taskName("Connect DB Control")
-                    .status("Fail")
-                    .message("Connect to database control failed! Check your database or network")
-                    .level(LevelEnum.ERROR.getValue())
-                    .createdAt(Timestamp.valueOf(LocalDateTime.now()))
-                    .build();
-            try {
-                // send mail for host notify task name "Connect DB Control" with status "fail"
-                sendMail.sendEmail(emailA, log);
-            } catch (MessagingException ex) {
-                throw new RuntimeException(ex);
-            }
-            throw new RuntimeException(e);
-        }
-    }
+    private int numRetry;
 
-    // Chạy vào lúc 0:00 các ngày Thứ Hai, Thứ Tư, Thứ Sáu
-    // syntax : giây phút giờ mọi ngày mọi tháng thứ 2,4,6
-    @Scheduled(cron = "0 07 22 * * 1,3,5")
+    // Chạy vào lúc 0:00:00 các ngày Thứ Hai, Thứ Tư, Thứ Sáu
+    // syntax : <giây> <phút> <giờ> <mọi ngày trong tháng> <mọi tháng trong năm> <thứ 2,4,6>
+    @Scheduled(cron = "0 15 11 * * 1,3,5")
     public void TaskScheduler() {
-        // check log in day
+        System.out.println("------------------CRAWL DATA------------------");
+        // 1. Thực thi hàm init() để kết nối database
+        init();
+        // 2.2 Lấy dữ liệu từ bảng logs xem đã lấy dữ liệu ngày hôm nay chưa
         try {
             PreparedStatement stmt = connection.prepareStatement("select id from logs where id_config = ? and status = ? and year(created_at) = ? and month(created_at) = ? and day(created_at) = ?");
             stmt.setInt(1, 1);
@@ -83,10 +64,12 @@ public class TaskSchedulerSystem {
             stmt.setInt(4, LocalDateTime.now().getMonthValue());
             stmt.setInt(5, LocalDateTime.now().getDayOfMonth());
             ResultSet rs = stmt.executeQuery();
+            // 3. Kiểm tra dữ liệu hôm nay đã có
             if (rs.next()) {
                 System.out.println("Exist data of today! Check your database or network");
             } else {
                 System.out.println("Task started at: " + LocalDateTime.now());
+                // 4. Thực thi hàm executeTask()
                 executeTask();
             }
         } catch (SQLException e) {
@@ -96,17 +79,19 @@ public class TaskSchedulerSystem {
     }
 
     public void retryTask() {
-        while (retryCount < retryCount) {
+        // 8.1 Kiểm tra số lần chạy lại tiến trình
+        while (numRetry < retryCount) {
             try {
-                retryCount++;
-                System.out.println("Retry attempt " + retryCount + "...");
+                numRetry++;
+                System.out.println("Retry attempt " + numRetry + "...");
                 Thread.sleep(delay);
+                // 4. Thực thi hàm executeTask()
                 executeTask();
-                System.out.println("Task executed successfully on attempt " + retryCount);
+                System.out.println("Task executed successfully on attempt " + numRetry);
                 break;
             } catch (InterruptedException e) {
                 e.printStackTrace();
-                if (retryCount == 5) {
+                if (numRetry == 5) {
                     System.out.println("Maximum retry attempts reached. Stopping.");
                     break;
                 }
@@ -117,10 +102,12 @@ public class TaskSchedulerSystem {
     public void executeTask() {
         try {
             System.out.println("Scheduled task executed at: " + LocalDateTime.now());
+            // 5. Thực thi hàm runExternalExcutable()
             runExternalExecutable();
         } catch (IOException | SQLException | MessagingException e) {
             System.out.println("Error! Check your file script or database");
             e.printStackTrace();
+            // 8. Thực thi hàm retryTask()
             retryTask();
         }
     }
@@ -137,7 +124,7 @@ public class TaskSchedulerSystem {
         System.out.println("số nguồn dữ liệu: " + numRow);
         for (int i = 1; i <= numRow; i++) {
             try {
-                // get metrix of DB Control to get data like as directory_file, filename, format.
+                // 6. Lấy dữ liệu cấu hình từ data_file_configs để truyền vào script
                 String sql = "SELECT * FROM data_file_configs WHERE id = ?";
                 try (PreparedStatement stmt = connection.prepareStatement(sql)) {
                     stmt.setLong(1, i);
@@ -150,6 +137,7 @@ public class TaskSchedulerSystem {
                         dataFileConfig.setFormat(rs.getString("format"));
                     }
                 }
+                // 7. Kiểm tra lấy dữ liệu thành công
             } catch (Exception e) {
                 Log log = Log.builder()
                         .idConfig(1L)
@@ -158,6 +146,7 @@ public class TaskSchedulerSystem {
                         .message("Get data config failed! Check your database or network")
                         .level(LevelEnum.ERROR.getValue())
                         .createdAt(Timestamp.valueOf(LocalDateTime.now()))
+                        .endTime(Timestamp.valueOf(LocalDateTime.now()))
                         .build();
                 try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO logs (id_config, task_name, status, message, level, created_at) VALUES (?, ?, ?, ?, ?, ?)")) {
                     stmt.setLong(1, log.getIdConfig());
@@ -166,28 +155,30 @@ public class TaskSchedulerSystem {
                     stmt.setString(4, log.getMessage());
                     stmt.setInt(5, log.getLevel());
                     stmt.setTimestamp(6, log.getCreatedAt());
+                    stmt.setTimestamp(7, log.getEndTime());
                     stmt.executeUpdate();
                 }
-                // send mail for host notify task name "Get data config" with status "fail"
+                // 8.1 Kiểm tra số lần chạy lại tiến trình
                 if (retryCount == 5) {
+                    // 8.1.1 Gửi mail về với taskname tương ứng và status "Fail"
                     sendMail.sendEmail(emailA, log);
                 }
                 e.printStackTrace();
                 throw new SQLException();
             }
-            // Get data config successful
+            // 7.1 Xử lý các dữ liệu được lấy ra để làm dữ liệu truyền vào script
             LocalDate today = LocalDate.now();
             String date = String.format("%d_%d_%d", today.getDayOfMonth(), today.getMonthValue(), today.getYear());
             String pathDestination = dataFileConfig.getDirectoryFile();
             String fileDestination = dataFileConfig.getFilename() + dataFileConfig.getName().toUpperCase() + "_" + date + "." + dataFileConfig.getFormat().toUpperCase();
 
+            // 8. Thực thi file script bằng ProcessBuilder với tham số là dường dẫn lưu file và tên file dữ liệu
             ProcessBuilder processBuilder = null;
             processBuilder = new ProcessBuilder("python", pathScript, pathDestination, fileDestination);
             processBuilder.redirectErrorStream(true);
             System.out.println("Loading...");
-            // execute file script to crawl data
             Process process = processBuilder.start();
-            // write log and insert status of proccess "proccessing" in table log
+            // 9. Lưu logs với trạng thái Running vào database
             Log log = Log.builder()
                     .idConfig(1L)
                     .taskName("Crawl data")
@@ -204,7 +195,6 @@ public class TaskSchedulerSystem {
                 stmt.setTimestamp(6, log.getCreatedAt());
                 stmt.executeUpdate();
             }
-            // print execution progress
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
@@ -217,11 +207,11 @@ public class TaskSchedulerSystem {
             try {
                 exitCode = process.waitFor();
                 System.out.println("Python script executed with exit code: " + exitCode);
-                // Check status crawl
+                // 12 Kiểm tra lưu file thành công
                 if (exitCode == 0) {
-                    // Write log for taskname "Crawl data" with status "successful"
                     log.setStatus("Success");
                     log.setEndTime(Timestamp.valueOf(LocalDateTime.now()));
+                    // 12.1 Lưu logs với trạng thái Success vào database
                     try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO logs (id_config, task_name, status, message, level, created_at) VALUES (?, ?, ?, ?, ?, ?)")) {
                         stmt.setLong(1, log.getIdConfig());
                         stmt.setString(2, log.getTaskName());
@@ -229,14 +219,16 @@ public class TaskSchedulerSystem {
                         stmt.setString(4, log.getMessage());
                         stmt.setInt(5, log.getLevel());
                         stmt.setTimestamp(6, log.getCreatedAt());
+                        stmt.setTimestamp(7, log.getEndTime());
                         stmt.executeUpdate();
                     }
+                    // 13. Gửi mail về với taskname "Get data config" và status "Success"
                     sendMail.sendEmail(emailA, log);
                     System.out.println("Script executed successfully!");
                 } else {
-                    // Write log for task name "Crawl data" with status "failure" send mail to host about log
                     log.setStatus("Fail");
                     log.setLevel(LevelEnum.ERROR.getValue());
+                    // 12.2 Lưu logs với trạng thái Fail vào database
                     try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO logs (id_config, task_name, status, message, level, created_at) VALUES (?, ?, ?, ?, ?, ?)")) {
                         stmt.setLong(1, log.getIdConfig());
                         stmt.setString(2, log.getTaskName());
@@ -244,10 +236,11 @@ public class TaskSchedulerSystem {
                         stmt.setString(4, log.getMessage());
                         stmt.setInt(5, log.getLevel());
                         stmt.setTimestamp(6, log.getCreatedAt());
+                        stmt.setTimestamp(7, log.getEndTime());
                         stmt.executeUpdate();
                     }
                     System.out.println("Script execution failed with exit code: " + exitCode);
-                    // send mail to host about log
+                    // 8.1 Kiểm tra số lần chạy lại tiến trình
                     if (retryCount == 5) {
                         sendMail.sendEmail(emailA, log);
                     }
@@ -263,6 +256,7 @@ public class TaskSchedulerSystem {
                     stmt.setString(4, log.getMessage());
                     stmt.setInt(5, log.getLevel());
                     stmt.setTimestamp(6, log.getCreatedAt());
+                    stmt.setTimestamp(7, log.getEndTime());
                     stmt.executeUpdate();
                 }
                 try {
@@ -274,6 +268,33 @@ public class TaskSchedulerSystem {
                 e.printStackTrace();
                 throw new IOException();
             }
+        }
+    }
+
+    //    @PostConstruct
+    public void init() {
+        System.out.println("Start connect to DB");
+        try {
+            // 1.1 Kết nối database với username: root, password:""
+            this.connection = DriverManager.getConnection(url, username, password);
+            // 2. Kiểm tra kết nối thành công
+        } catch (SQLException e) {
+            Log log = Log.builder()
+                    .idConfig(1L)
+                    .taskName("Connect DB Control")
+                    .status("Fail")
+                    .message("Connect to database control failed! Check your database or network")
+                    .level(LevelEnum.ERROR.getValue())
+                    .createdAt(Timestamp.valueOf(LocalDateTime.now()))
+                    .endTime(Timestamp.valueOf(LocalDateTime.now()))
+                    .build();
+            try {
+                // 2.1 Gửi mail về với taskname là "Connect DB Control" và status "Fail"
+                sendMail.sendEmail(emailA, log);
+            } catch (MessagingException ex) {
+                throw new RuntimeException(ex);
+            }
+            throw new RuntimeException(e);
         }
     }
 

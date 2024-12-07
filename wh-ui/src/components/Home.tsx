@@ -16,6 +16,7 @@ function Home() {
   const [products, setProducts] = useState<Laptop[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMoreProducts, setHasMoreProducts] = useState(true);
+  const [searchTerm, setSearchTerm] = useState(""); // State cho tìm kiếm
   const productsPerPage = 10; // Số sản phẩm trên mỗi trang
   const navigate = useNavigate();
 
@@ -24,15 +25,16 @@ function Home() {
   };
 
   // Fetch product data from the API
-  const fetchProducts = (page: number) => {
-    const url = `http://localhost:8080/api/productsToDay/${page}`;
-    console.log('url: ', url)
-    axios
-      .post(url)
+  const fetchProducts = (page: number, searchTerm: string) => {
+    const url = searchTerm
+      ? `http://localhost:8080/api/searchProducts/${searchTerm}`
+      : `http://localhost:8080/api/productsToDay/${page}`;
+    console.log('url: ', url);
+    axios.post(url)
       .then((response) => {
         const newProducts = response.data || [];
-        setProducts(response.data); // Ensure API returns products in a `products` field
-        // Nếu số sản phẩm ít hơn productsPerPage, không có trang tiếp theo
+        console.log('newProducts: ', newProducts);
+        setProducts(newProducts);
         setHasMoreProducts(newProducts.length === productsPerPage);
       })
       .catch((error) => {
@@ -41,10 +43,10 @@ function Home() {
       });
   };
 
-  // Fetch products when the component mounts or the page changes
+  // Fetch products when the component mounts, page changes, or search term changes
   useEffect(() => {
-    fetchProducts(currentPage);
-  }, [currentPage]);
+    fetchProducts(currentPage, searchTerm);
+  }, [currentPage, searchTerm]); // Thêm `searchTerm` vào dependency
 
   const handleNextPage = () => {
     if (hasMoreProducts) {
@@ -58,16 +60,28 @@ function Home() {
     }
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value); // Cập nhật từ khóa tìm kiếm
+  };
+
   return (
     <div className="container">
       <h1>Danh sách Laptop</h1>
+
+      {/* Thêm ô tìm kiếm */}
+      <div className="search-bar">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={handleSearchChange}
+          placeholder="Tìm kiếm sản phẩm..."
+        />
+      </div>
+      
       <div className="product-grid">
         {products.length > 0 ? (
           products.map((laptop) => (
-            <div className="product-card"
-            key={laptop.id}
-            onClick={() => handleProductClick(laptop.id)}
-            >
+            <div className="product-card" key={laptop.id} onClick={() => handleProductClick(laptop.id)}>
               <img src="/imgs/laptop.png" alt="" className="product-image" />
               <div className="product-info">
                 <b
@@ -87,12 +101,16 @@ function Home() {
                     currency: "VND",
                   }).format(laptop.price)}
                 </p>
-                <button className="add-to-cart" onClick={() => handleProductClick(laptop.id)}>Chi tiết sản phẩm</button>
+                <button className="add-to-cart" onClick={() => handleProductClick(laptop.id)}>
+                  Chi tiết sản phẩm
+                </button>
               </div>
             </div>
           ))
         ) : (
-          <p>Loading products...</p> // Show loading text while waiting for API response
+          <div style={{ minHeight: "51px" }}>
+            <p>Loading products...</p>
+          </div>
         )}
       </div>
 
@@ -105,7 +123,9 @@ function Home() {
         >
           Trở lại
         </button>
-        <span style={{marginTop:"10px", padding:"0 20px"}}>Trang {currentPage}</span>
+        <span style={{ marginTop: "10px", padding: "0 20px" }}>
+          Trang {currentPage}
+        </span>
         <button
           className="page-button"
           disabled={!hasMoreProducts}
