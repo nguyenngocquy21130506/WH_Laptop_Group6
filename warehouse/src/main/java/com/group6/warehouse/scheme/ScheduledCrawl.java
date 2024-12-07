@@ -181,7 +181,7 @@ public class ScheduledCrawl {
             // 9. Lưu logs với trạng thái Running vào database
             Log log = Log.builder()
                     .idConfig(1L)
-                    .taskName("Crawl data")
+                    .taskName("CrawlData")
                     .status("Running")
                     .message("Crawl data from Tiki.vn")
                     .level(LevelEnum.INFO.getValue())
