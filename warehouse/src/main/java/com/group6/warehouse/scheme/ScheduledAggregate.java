@@ -25,7 +25,7 @@ public class ScheduledAggregate {
 
     // Lập lịch
 //    @Scheduled(cron = "0 35 0 * * 2,4,6")
-    @Scheduled(cron = "00 52 22 * * ?")
+    @Scheduled(cron = "00 30 13 * * ?")
     public void executeAggregateJar() {
         try {
             // Gọi phương thức thực thi file .jar

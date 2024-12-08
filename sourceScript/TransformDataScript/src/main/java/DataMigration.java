@@ -112,7 +112,7 @@ public class DataMigration {
     // Lấy thông tin cột và lưu vào Map
     private void loadTableColumnMapping(String configId) {
         if (tableColumnMap.containsKey(configId)) return; // Nếu đã tải, bỏ qua
-
+        System.out.println(configId);
         List<String[]> columns = new ArrayList<>();
         String sql = "SELECT name_column, data_type FROM detail_table WHERE id_table_config = (SELECT id FROM table_configs WHERE name_table = ?)";
 
@@ -197,11 +197,15 @@ public class DataMigration {
                 selectColumns.append("IFNULL(CAST(NULLIF(").append(columnName).append(", '') AS UNSIGNED), 0)");
             } else if (dataType.equalsIgnoreCase("DATETIME")) {
                 selectColumns.append("IFNULL(").append(columnName).append(", CURRENT_TIMESTAMP())");
+            } else if (dataType.equalsIgnoreCase("VARCHAR")) {
+                // Xử lý cho kiểu VARCHAR: Bỏ qua giá trị null và giữ nguyên nếu không
+                selectColumns.append("IFNULL(NULLIF(").append(columnName).append(", ''), '')");
             } else {
+                // Mặc định xử lý các kiểu dữ liệu khác
                 selectColumns.append("NULLIF(").append(columnName).append(", '')");
             }
         }
-
+        System.out.println("selectColumns" + selectColumns);
         String transformSql = "INSERT INTO " + tableName + " (" + getColumnNames(columns) + ") " +
                 "SELECT " + selectColumns + " FROM staging.staging_laptop";
 

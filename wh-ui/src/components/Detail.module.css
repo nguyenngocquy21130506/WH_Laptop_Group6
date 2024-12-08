@@ -28,12 +28,12 @@
 .discount{
     font-size: 20px;
     text-decoration: line-through;
-    text-decoration-thickness: 2px;
+    text-decoration-thickness: 1px;
     text-decoration-color: red;
     font-weight: 500;
-    color: #919191;
+    color: #616161;
     padding-top: 25px;
-    padding-left: 20px;
+    padding-left: 5px;
 }
 
 .imageProduct{

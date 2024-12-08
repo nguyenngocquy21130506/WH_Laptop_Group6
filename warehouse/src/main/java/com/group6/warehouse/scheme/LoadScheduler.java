@@ -18,7 +18,7 @@ public class LoadScheduler {
      * Lập lịch chạy script vào lúc 00:30 sáng thứ 2, thứ 4, thứ 6 hàng tuần.
      * Cron expression: "0 30 0 * * MON,WED,FRI"
      */
-    @Scheduled(cron = "00 37 11 * * MON,WED,FRI,SAT")
+    @Scheduled(cron = "00 29 13 * * MON,WED,FRI,SAT,SUN")
     public void runLoadToStagingScript() {
         boolean success = false;
         int retryCount = 0;

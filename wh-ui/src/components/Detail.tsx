@@ -10,6 +10,7 @@ interface Laptop {
   brand_name: string;
   short_description: string;
   discount: number;
+  discount_rate: number;
 }
 
 function ProductDetail() {
@@ -54,6 +55,14 @@ function ProductDetail() {
               currency: "VND",
             }).format(product.price)}
           </p>
+          {product.discount_rate != 0 ? (
+            <p style={{paddingTop:"28px", paddingLeft:"20px", color:"red", fontWeight:"700"}}>
+              (-{product.discount_rate} %)
+            </p>
+          ) : (
+            <p style={{width:"30px"}}>
+            </p>
+          )}
           <p className={styles.discount}>
             {new Intl.NumberFormat("vi-VN", {
               style: "currency",

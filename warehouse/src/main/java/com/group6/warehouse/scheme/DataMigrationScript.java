@@ -32,7 +32,7 @@ public class DataMigrationScript {
 
     // Chạy vào lúc 0:00 các ngày Thứ Hai, Thứ Tư, Thứ Sáu
     // syntax : giây phút giờ mọi ngày mọi tháng thứ 2,4,6
-    @Scheduled(cron = "0 12 14 * * 1,3,5")
+    @Scheduled(cron = "30 29 13 * * 1,3,5,7")
     public void TaskScheduler() {
                 executeTask();
     }

@@ -144,7 +144,7 @@ public class LoadToStaging {
             // Bước 11: Đọc và tải dữ liệu vào bảng staging_laptop
             String tableName= "";
             String columns = "";
-            String query = "Select name_table, columns from table_configs where name_db = 'staging'";
+            String query = "Select name_table, columns from table_configs where id = 'staging_laptop_n'";
             try (PreparedStatement configStatement = dbControlConnection.prepareStatement(query);
                  ResultSet resultSet = configStatement.executeQuery()) {
                 if (resultSet.next()) {

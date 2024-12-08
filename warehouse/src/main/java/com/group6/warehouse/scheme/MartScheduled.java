@@ -24,7 +24,7 @@ public class MartScheduled {
 
 
     // Lập lịch
-    @Scheduled(cron = "20 23 22 * * ?")
+    @Scheduled(cron = "30 30 13 * * ?")
     public void executeLoadMartJar() {
         try {
             // Gọi phương thức thực thi file .jar

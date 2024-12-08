@@ -35,7 +35,7 @@ params = {
     "page": "1"
 }
 
-# Nhận đường dẫn file CSV và tên file đầu ra từ tham số dòng lệnh
+# 10. Nhận vào 2 thông số là đường dẫn lưu file và tên file
 if len(sys.argv) < 3:
     # Nếu không đủ tham số, sử dụng giá trị mặc định
     # Lấy ngày hiện tại
@@ -213,7 +213,7 @@ p_ids = df_id.id.to_list()
 print(p_ids)
 result = []
 
-# Crawl dữ liệu sản phẩm
+# 11. Gọi API để lấy danh sách laptop và lưu vào file đã được khai báo với đường dẫn và tên file nhập vào
 for pid in tqdm(p_ids, total=len(p_ids)):
     try:
         response = requests.get(f'https://tiki.vn/api/v2/products/{pid}', headers=headers, params=params, cookies=cookies)

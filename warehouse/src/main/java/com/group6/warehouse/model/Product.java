@@ -16,4 +16,5 @@ public class Product {
     private String brand_name;
     private String short_description;
     private int discount;
+    private int discount_rate;
 }

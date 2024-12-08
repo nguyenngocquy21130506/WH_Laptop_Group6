@@ -83,8 +83,8 @@ public class TransformAggregate {
                 System.out.println("Đã kết nối đến cơ sở dữ liệu datawarehouse.");
 
                 // 6. Lấy thông tin bảng từ table_config để thực hiện các tính toán tổng hợp
-                String getProductTableConfig = "SELECT name_table, name_db FROM table_configs WHERE name_table = 'product_dim' AND name_db = 'datawarehouse'";
-                String getBrandTableConfig = "SELECT name_table, name_db FROM table_configs WHERE name_table = 'brand_dim' AND name_db = 'datawarehouse'";
+                String getProductTableConfig = "SELECT name_table, name_db FROM table_configs WHERE id = 'product_dim_n'";
+                String getBrandTableConfig = "SELECT name_table, name_db FROM table_configs WHERE id = 'brand_dim_n'";
 
                 String productTableName = null;
                 String brandTableName = null;
