@@ -342,7 +342,7 @@ public class DataMigration {
         String fullDate = currentDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")); // Định dạng ngày
 
         // SQL để chèn dữ liệu vào date_dim
-        String sql = "INSERT INTO date_dim (day_of_week, full_date, month, year, created_at) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO date_dim (day_of_week, full_date, month, year) VALUES (?, ?, ?, ?)";
 
         // Kết nối tới database warehouse
         try (Connection conn = connectToWarehouseDB();
@@ -353,7 +353,7 @@ public class DataMigration {
             pstmt.setString(2, fullDate); // full_date
             pstmt.setInt(3, month); // month
             pstmt.setInt(4, year); // year
-            pstmt.setTimestamp(5, java.sql.Timestamp.valueOf(LocalDateTime.now())); // created_at
+
 
             // Thực thi lệnh SQL
             int rowsInserted = pstmt.executeUpdate();
@@ -465,24 +465,24 @@ public class DataMigration {
     // Phương thức kiểm tra trạng thái Crawl data
     private boolean checkCrawlDataToStagingStatus() {
         String sql = "SELECT end_time FROM logs " +
-                "WHERE message = ? AND status = ? " +
+                "WHERE task_name = ? AND status = ? " +
                 "ORDER BY end_time DESC LIMIT 1";
         try (Connection conn = connectToControlDB();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, "Crawl data from Tiki.vn");
+            pstmt.setString(1, "LoadToStaging");
             pstmt.setString(2, "Success");
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
                 // Đã có một bản ghi thành công với thời gian gần nhất
-                System.out.println("Crawl data status is successful. Proceeding...");
+                System.out.println("LoadToStaging status is successful. Proceeding...");
                 return true;
             } else {
-                System.out.println("No successful recent crawl data record found.");
+                System.out.println("No successful recent LoadToStaging record found.");
                 return false;
             }
         } catch (SQLException e) {
-            System.out.println("Error checking crawl data status: " + e.getMessage());
+            System.out.println("Error checking LoadToStaging status: " + e.getMessage());
             return false;
         }
     }

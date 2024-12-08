@@ -74,7 +74,7 @@ public class TaskSchedulerSystem {
 
     // Chạy vào lúc 0:00 các ngày Thứ Hai, Thứ Tư, Thứ Sáu
     // syntax : giây phút giờ mọi ngày mọi tháng thứ 2,4,6
-    @Scheduled(cron = "0 10 14 * * 1,3,5")
+    @Scheduled(cron = "0 36 09 * * 1,3,5,7")
     public void TaskSchedulepr() {
         // check log in day
         try {
