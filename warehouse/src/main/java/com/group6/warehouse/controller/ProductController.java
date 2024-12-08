@@ -24,4 +24,9 @@ public class ProductController {
     public Product getAllProduct(@PathVariable int id) {
         return productDAO.getProductById(id);
     }
+
+    @PostMapping("/searchProducts/{name}")
+    public List<Product> searchProduct(@PathVariable String name) {
+        return productDAO.searchProduct(name);
+    }
 }
