@@ -26,9 +26,12 @@ spring:
 
 custom:
   file:
-    crawlPath: "D:/DoanWarehouse/warehouse/src/main/java/com/group6/warehouse/script/crawldata.py"
-    statowhPath: "D:/workspace/DataWare/WH_Laptop_Group6/warehouse/src/main/java/com/group6/warehouse/script/TransformDataScript.jar"
+    crawlPath: "D:/ServerWH/WH_Laptop_Group6/warehouse/src/main/java/com/group6/warehouse/script/crawldata.py"
+    statowhPath: "D:/ServerWH/WH_Laptop_Group6/warehouse/src/main/java/com/group6/warehouse/script/TransformDataScript.jar"
     aggregatePath: "D:/ServerWH/WH_Laptop_Group6/warehouse/src/main/java/com/group6/warehouse/script/transformAggregate.jar"
+    loadStagingPath: "D:/ServerWH/WH_Laptop_Group6/warehouse/src/main/java/com/group6/warehouse/script/LoadToStaging.jar"
+    loadMartPath: "D:/ServerWH/WH_Laptop_Group6/warehouse/src/main/java/com/group6/warehouse/script/loadDataToMart.jar"
+
 
 mailServer:
   host: smtp.gmail.com

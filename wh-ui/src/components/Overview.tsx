@@ -87,7 +87,7 @@ function Home() {
             alt="Highest Price Product"
           />
           <br />
-          <b className="productName" onClick={()=>handleProductClick(273716780)}>{aggregate.max_price_product_name}</b>
+          <b className="productName" onClick={()=>handleProductClick(183)}>{aggregate.max_price_product_name}</b>
           <br />
           <b
             style={{
@@ -117,7 +117,7 @@ function Home() {
             alt="Lowest Price Product"
           />
           <br />
-          <b className="productName" onClick={()=>handleProductClick(273716812)}>{aggregate.min_price_product_name}</b>
+          <b className="productName" onClick={()=>handleProductClick(9)}>{aggregate.min_price_product_name}</b>
           <br />
           <b
             style={{
@@ -135,7 +135,7 @@ function Home() {
           </b>
           <br />
           <br />
-          <b>LENOVO</b>
+          <b>VINBUY</b>
         </div>
       </div>
     </div>

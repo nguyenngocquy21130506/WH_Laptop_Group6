@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
+import java.time.LocalDateTime;
 
 @Service
 public class SendMail {
@@ -41,7 +42,7 @@ public class SendMail {
                 "<p><strong>Trạng thái:</strong> <span class='error'>" + log.getStatus() + "</span></p>" +
                 "<p><strong>Thông điệp:</strong> " + log.getMessage() + "</p>" +
                 "<p><strong>Cấp độ:</strong> " + log.getLevel() + "</p>" +
-                "<p><strong>Thời gian tạo:</strong> " + log.getCreatedAt() + "</p>" +
+                "<p><strong>Thời gian tạo:</strong> " + LocalDateTime.now() + "</p>" +
                 "</div>" +
                 "<div class='footer'>" +
                 "<p>© 2024 WarehouseSystem. Tất cả quyền được bảo lưu.</p>" +

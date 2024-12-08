@@ -1,4 +1,5 @@
 package com.group6.warehouse.scheme;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -9,14 +10,15 @@ import java.time.LocalDateTime;
 @Component
 public class LoadScheduler {
     // Đường dẫn tới file JAR của bạn
-    private static final String SCRIPT_PATH = "D:\\ServerWH\\WH_Laptop_Group6\\warehouse\\src\\main\\java\\com\\group6\\warehouse\\script\\LoadToStagingScript.jar";
+    @Value("${custom.file.loadStagingPath}")
+    private String SCRIPT_PATH ;
     private static final int MAX_RETRY_DURATION = 60; // Thời gian retry tối đa là 60 phút
     private static final int RETRY_INTERVAL = 10; // Thử lại mỗi 10 phút
     /**
      * Lập lịch chạy script vào lúc 00:30 sáng thứ 2, thứ 4, thứ 6 hàng tuần.
      * Cron expression: "0 30 0 * * MON,WED,FRI"
      */
-    @Scheduled(cron = "0 37 22 * * MON,WED,FRI")
+    @Scheduled(cron = "00 29 13 * * MON,WED,FRI,SAT,SUN")
     public void runLoadToStagingScript() {
         boolean success = false;
         int retryCount = 0;
