@@ -55,7 +55,7 @@ function ProductDetail() {
               currency: "VND",
             }).format(product.price)}
           </p>
-          {product.discount_rate != 0 ? (
+          {product.discount_rate !== 0 ? (
             <p style={{paddingTop:"28px", paddingLeft:"20px", color:"red", fontWeight:"700"}}>
               (-{product.discount_rate} %)
             </p>

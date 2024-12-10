@@ -50,19 +50,20 @@ public class ScheduledCrawl {
 
     // Chạy vào lúc 0:00:00 các ngày Thứ Hai, Thứ Tư, Thứ Sáu
     // syntax : <giây> <phút> <giờ> <mọi ngày trong tháng> <mọi tháng trong năm> <thứ 2,4,6>
-    @Scheduled(cron = "0 15 11 * * 1,3,5")
+    @Scheduled(cron = "00 00 00 * * 1,3,5")
     public void TaskScheduler() {
         System.out.println("------------------CRAWL DATA------------------");
         // 1. Thực thi hàm init() để kết nối database
         init();
         // 2.2 Lấy dữ liệu từ bảng logs xem đã lấy dữ liệu ngày hôm nay chưa
         try {
-            PreparedStatement stmt = connection.prepareStatement("select id from logs where id_config = ? and status = ? and year(created_at) = ? and month(created_at) = ? and day(created_at) = ?");
+            PreparedStatement stmt = connection.prepareStatement("select id from logs where id_config = ? and status = ? and year(created_at) = ? and month(created_at) = ? and day(created_at) = ? and task_name = ?");
             stmt.setInt(1, 1);
             stmt.setString(2, "Success");
             stmt.setInt(3, LocalDateTime.now().getYear());
             stmt.setInt(4, LocalDateTime.now().getMonthValue());
             stmt.setInt(5, LocalDateTime.now().getDayOfMonth());
+            stmt.setString(6, "CrawlData");
             ResultSet rs = stmt.executeQuery();
             // 3. Kiểm tra dữ liệu hôm nay đã có
             if (rs.next()) {
@@ -145,22 +146,18 @@ public class ScheduledCrawl {
                         .status("Fail")
                         .message("Get data config failed! Check your database or network")
                         .level(LevelEnum.ERROR.getValue())
-                        .createdAt(Timestamp.valueOf(LocalDateTime.now()))
-                        .endTime(Timestamp.valueOf(LocalDateTime.now()))
                         .build();
-                try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO logs (id_config, task_name, status, message, level, created_at) VALUES (?, ?, ?, ?, ?, ?)")) {
+                try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO logs (id_config, task_name, status, message, level, created_at,end_time) VALUES (?, ?, ?, ?, ?, NOW(), NOW())")) {
                     stmt.setLong(1, log.getIdConfig());
                     stmt.setString(2, log.getTaskName());
                     stmt.setString(3, log.getStatus());
                     stmt.setString(4, log.getMessage());
                     stmt.setInt(5, log.getLevel());
-                    stmt.setTimestamp(6, log.getCreatedAt());
-                    stmt.setTimestamp(7, log.getEndTime());
                     stmt.executeUpdate();
                 }
                 // 8.1 Kiểm tra số lần chạy lại tiến trình
                 if (retryCount == 5) {
-                    // 8.1.1 Gửi mail về với taskname tương ứng và status "Fail"
+                    // 8.1.1 Gửi mail về với taskname tương ứng và status "Fail" vào database
                     sendMail.sendEmail(emailA, log);
                 }
                 e.printStackTrace();
@@ -168,17 +165,17 @@ public class ScheduledCrawl {
             }
             // 7.1 Xử lý các dữ liệu được lấy ra để làm dữ liệu truyền vào script
             LocalDate today = LocalDate.now();
-            String date = String.format("%d_%d_%d", today.getDayOfMonth(), today.getMonthValue(), today.getYear());
+            String date = String.format("%02d_%02d_%d", today.getDayOfMonth(), today.getMonthValue(), today.getYear());
             String pathDestination = dataFileConfig.getDirectoryFile();
             String fileDestination = dataFileConfig.getFilename() + dataFileConfig.getName().toUpperCase() + "_" + date + "." + dataFileConfig.getFormat().toUpperCase();
 
-            // 8. Thực thi file script bằng ProcessBuilder với tham số là dường dẫn lưu file và tên file dữ liệu
+            // 9. Thực thi file script bằng ProcessBuilder với tham số là dường dẫn lưu file và tên file dữ liệu
             ProcessBuilder processBuilder = null;
             processBuilder = new ProcessBuilder("python", pathScript, pathDestination, fileDestination);
             processBuilder.redirectErrorStream(true);
             System.out.println("Loading...");
             Process process = processBuilder.start();
-            // 9. Lưu logs với trạng thái Running vào database
+            // 10. Lưu logs với taskname "CrawlData" và status "Running" vào database
             Log log = Log.builder()
                     .idConfig(1L)
                     .taskName("CrawlData")
@@ -186,13 +183,12 @@ public class ScheduledCrawl {
                     .message("Crawl data from Tiki.vn")
                     .level(LevelEnum.INFO.getValue())
                     .build();
-            try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO logs (id_config, task_name, status, message, level, created_at) VALUES (?, ?, ?, ?, ?, ?)")) {
+            try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO logs (id_config, task_name, status, message, level, created_at,end_time) VALUES (?, ?, ?, ?, ?,NOW(), NOW())")) {
                 stmt.setLong(1, log.getIdConfig());
                 stmt.setString(2, log.getTaskName());
                 stmt.setString(3, log.getStatus());
                 stmt.setString(4, log.getMessage());
                 stmt.setInt(5, log.getLevel());
-                stmt.setTimestamp(6, log.getCreatedAt());
                 stmt.executeUpdate();
             }
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
@@ -207,36 +203,32 @@ public class ScheduledCrawl {
             try {
                 exitCode = process.waitFor();
                 System.out.println("Python script executed with exit code: " + exitCode);
-                // 12 Kiểm tra lưu file thành công
+                // 13. Kiểm tra lưu file thành công
                 if (exitCode == 0) {
                     log.setStatus("Success");
-                    log.setEndTime(Timestamp.valueOf(LocalDateTime.now()));
-                    // 12.1 Lưu logs với trạng thái Success vào database
-                    try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO logs (id_config, task_name, status, message, level, created_at) VALUES (?, ?, ?, ?, ?, ?)")) {
+
+                    // 13.1 Lưu logs với taskname "CrawlData" và status "Success" vào database
+                    try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO logs (id_config, task_name, status, message, level, created_at,end_time) VALUES (?, ?, ?, ?, ?,NOW(), NOW())")) {
                         stmt.setLong(1, log.getIdConfig());
                         stmt.setString(2, log.getTaskName());
                         stmt.setString(3, log.getStatus());
                         stmt.setString(4, log.getMessage());
                         stmt.setInt(5, log.getLevel());
-                        stmt.setTimestamp(6, log.getCreatedAt());
-                        stmt.setTimestamp(7, log.getEndTime());
                         stmt.executeUpdate();
                     }
-                    // 13. Gửi mail về với taskname "Get data config" và status "Success"
+                    // 14. Gửi mail về với taskname "CrawlData" và status "Success"
                     sendMail.sendEmail(emailA, log);
                     System.out.println("Script executed successfully!");
                 } else {
                     log.setStatus("Fail");
                     log.setLevel(LevelEnum.ERROR.getValue());
-                    // 12.2 Lưu logs với trạng thái Fail vào database
-                    try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO logs (id_config, task_name, status, message, level, created_at) VALUES (?, ?, ?, ?, ?, ?)")) {
+                    // 13.2 Lưu logs với taskname "CrawlData" và status "Fail" vào database
+                    try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO logs (id_config, task_name, status, message, level, created_at,end_time) VALUES (?, ?, ?, ?, ?,Now(), Now())")) {
                         stmt.setLong(1, log.getIdConfig());
                         stmt.setString(2, log.getTaskName());
                         stmt.setString(3, log.getStatus());
                         stmt.setString(4, log.getMessage());
                         stmt.setInt(5, log.getLevel());
-                        stmt.setTimestamp(6, log.getCreatedAt());
-                        stmt.setTimestamp(7, log.getEndTime());
                         stmt.executeUpdate();
                     }
                     System.out.println("Script execution failed with exit code: " + exitCode);
@@ -249,14 +241,12 @@ public class ScheduledCrawl {
             } catch (InterruptedException e) {
                 log.setStatus("Fail");
                 log.setLevel(LevelEnum.ERROR.getValue());
-                try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO logs (id_config, task_name, status, message, level, created_at) VALUES (?, ?, ?, ?, ?, ?)")) {
+                try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO logs (id_config, task_name, status, message, level, created_at,end_time) VALUES (?, ?, ?, ?, ?, Now(), Now())")) {
                     stmt.setLong(1, log.getIdConfig());
                     stmt.setString(2, log.getTaskName());
                     stmt.setString(3, log.getStatus());
                     stmt.setString(4, log.getMessage());
                     stmt.setInt(5, log.getLevel());
-                    stmt.setTimestamp(6, log.getCreatedAt());
-                    stmt.setTimestamp(7, log.getEndTime());
                     stmt.executeUpdate();
                 }
                 try {
@@ -285,8 +275,6 @@ public class ScheduledCrawl {
                     .status("Fail")
                     .message("Connect to database control failed! Check your database or network")
                     .level(LevelEnum.ERROR.getValue())
-                    .createdAt(Timestamp.valueOf(LocalDateTime.now()))
-                    .endTime(Timestamp.valueOf(LocalDateTime.now()))
                     .build();
             try {
                 // 2.1 Gửi mail về với taskname là "Connect DB Control" và status "Fail"
@@ -297,6 +285,7 @@ public class ScheduledCrawl {
             throw new RuntimeException(e);
         }
     }
+
 
     public static void main(String[] args) {
         System.out.println(LocalDateTime.now());
