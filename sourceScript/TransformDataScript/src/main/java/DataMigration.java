@@ -536,7 +536,7 @@ public class DataMigration {
 //      2. Kết nối database control.db
             connectToControlDB();
 //      3. Kiểm tra kết nối control.db
-//      4.1 Gửi mail thông báo lỗi
+//      3.1 Gửi mail thông báo lỗi
             if (!checkControlDBConnection()) {
                 String subject = "Database Connection Error";
                 String messageContent = "Failed to connect to the CONTROL database. Please check the configuration and connectivity.";
@@ -546,7 +546,7 @@ public class DataMigration {
                 System.out.println("Email thông báo lỗi đã được gửi.");
             }
 
-//      4.2 Select dữ liệu từ logs với event Loaded
+//      4 Select dữ liệu từ logs với event Loaded
             logResult(1, "LoadFromStagingToDataWarehouse", "Running", "Loading", startTime, LocalDateTime.now());
 //      5. Kiểm tra kết quả query
             if (!checkCrawlDataToStagingStatus()) {
@@ -563,7 +563,7 @@ public class DataMigration {
 //      6. Kết nối database staging.db
             connectToStagingDB();
 //      7. Kiểm tra kết nối staging.db
-//      8.1 Ghi log thất bại: Không có dữ liệu, Gửi mail thông báo lỗi
+//      7.1 Ghi log thất bại: Không có dữ liệu, Gửi mail thông báo lỗi
             if (!checkStagingDBConnection()) {
                 String subject = "Database Connection Error: Staging DB";
                 String messageContent = "Failed to connect to the STAGING database. Please check the configuration and connectivity.";
@@ -576,12 +576,12 @@ public class DataMigration {
                 System.out.println("Email thông báo lỗi kết nối STAGING database đã được gửi.");
             }
 
-//      8.2 Select dữ liệu từ staging, transform dữ liệu trong staging
+//      8 Select dữ liệu từ staging, transform dữ liệu trong staging
             transformDataToLaptopTransform();
 //      9. Kết nối database warehouse.db
             connectToWarehouseDB();
 //      10. Kiểm tra kết nối warehouse.db
-//      11.1 Ghi log thất bại: Không có dữ liệu, Gửi mail thông báo lỗi
+//      10.1 Ghi log thất bại: Không có dữ liệu, Gửi mail thông báo lỗi
             if (!checkWarehouseDBConnection()) {
                 String subject = "Database Connection Error: datawarehouse DB";
                 String messageContent = "ail to connect to the DATAWAREHOUSE database. Please check the configuration and connectivity.";
@@ -593,7 +593,7 @@ public class DataMigration {
                 sendEmail(subject, messageContent);
                 System.out.println("Email thông báo lỗi kết nối DATAWAREHOUSE database đã được gửi.");
             }
-//      11.2 Hoàn tất chuyển dữ liệu
+//      11 Hoàn tất chuyển dữ liệu
             // Di chuyển dữ liệu vào các bảng
             System.out.println("Di chuyển dữ liệu sang Brand Dim...");
             migrateData(getTableName("brand_dim_n"), "brand_id");

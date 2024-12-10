@@ -46,43 +46,23 @@ public class TransformAggregate {
             insertLog(properties, "Running", "Transform Aggregate", "Đang thực hiện tiến trình.");
 
             // 4. Kiểm tra quá trình từ staging vào DW đã run xong chưa
-
-            String checkLogSQL = "SELECT CASE WHEN status = 'Success' THEN 1 ELSE 0 END AS is_success "
-                    + "FROM logs WHERE task_name = 'LoadFromStagingToDatawarehouse' "
-                    + "AND DATE(created_at) = ? ORDER BY created_at DESC LIMIT 1";
-
-            try (PreparedStatement ps = connControl.prepareStatement(checkLogSQL)) {
-                // Đặt giá trị tham số cho ngày chạy (runDate)
-                ps.setDate(1, new java.sql.Date(runDate.getTime())); // Chuyển runDate thành java.sql.Date
-
-                try (ResultSet resultSet = ps.executeQuery()) {
-                    // Format ngày chạy (runDate) để hiển thị trong thông báo
-                    SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-                    String formattedDate = sdf.format(runDate);
-
-                    if (!resultSet.next()) {
-                        String message = "Quá trình từ staging vào DW chưa chạy trong ngày " + formattedDate + ".";
-                        System.out.println(message);
-                        insertLog(properties, "Fail", "Transform Aggregate", message);
-                        new MailService().sendEmail("Transform Aggregate Failed", message);
-                        return;
-                    }
-                    if (resultSet.getInt("is_success") != 1) {
-                        String message = "Quá trình từ staging vào DW chưa hoàn thành trong ngày " + formattedDate + ".";
-                        System.out.println(message);
-                        insertLog(properties, "Fail", "Transform Aggregate", message);
-                        new MailService().sendEmail("Transform Aggregate Failed", message);
-                        return;
-                    }
-                }
+            if (!checkSQLLog(connControl, runDate, "LoadFromStagingToDatawarehouse")) {
+                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+                String formattedDate = sdf.format(runDate);
+                String message = "Quá trình từ staging vào DW chưa hoàn thành trong ngày " + formattedDate + ".";
+                System.out.println(message);
+                insertLog(properties, "Fail", "Transform Aggregate", message);
+                new MailService().sendEmail("Transform Aggregate Failed", message);
+                return;
             }
 
-
             // 5. Kết nối đến datawarehouse.db
+            // 6. Kiểm tra kết nối đến datawarehouse.db
             try (Connection connDataWarehouse = DriverManager.getConnection(jdbcURLDataWarehouse, username, password)) {
                 System.out.println("Đã kết nối đến cơ sở dữ liệu datawarehouse.");
 
-                // 6. Lấy thông tin bảng từ table_config để thực hiện các tính toán tổng hợp
+
+                // 7. Lấy thông tin bảng từ table_config ở db control để tổng  hợp
                 String getProductTableConfig = "SELECT name_table, name_db FROM table_configs WHERE id = 'product_dim_n'";
                 String getBrandTableConfig = "SELECT name_table, name_db FROM table_configs WHERE id = 'brand_dim_n'";
 
@@ -108,7 +88,7 @@ public class TransformAggregate {
                     return;
                 }
 
-                // 7. Insert vào bảng price_aggregate và brand_aggregate
+              //  8. Thực hiện tính toán tổng hợp cho bảng price_aggregate và brand_aggregate ở db datawarhouse
                 String priceAggregateSQL = String.format(
                         "INSERT INTO price_aggregate (sk, avg_price_value, min_price_value, max_price_value, total_price_value, avg_discount_value, min_price_product_name, max_price_product_name, avg_price_product_name, total_products, create_at) "
                                 + "SELECT CONCAT('aggregate_summary_', CURDATE()) AS sk, "
@@ -155,18 +135,21 @@ public class TransformAggregate {
                     System.out.println("Dữ liệu đã được chèn hoặc cập nhật trong bảng brand_aggregate.");
                 }
 
-                // 8. Insert 1 dòng dữ liệu vào control.log với status="Success"
+                // 9. Insert 1 dòng dữ liệu vào control.log với status="Success"
                 insertLog(properties, "Success", "Transform Aggregate", "Tổng hợp dữ liệu thành công.");
                 new MailService().sendEmail("Transform Aggregate Success", "Tổng hợp dữ liệu thành công.");
 
             } catch (SQLException e) {
+                //6.1. Insert 1 dòng dữ liệu vào control.log với status="Fail" and task_name="Transform Aggregate"
                 System.err.println("Lỗi kết nối cơ sở dữ liệu datawarehouse: " + e.getMessage());
                 insertLog(properties, "Fail", "Transform Aggregate", "Lỗi kết nối cơ sở dữ liệu datawarehouse: " + e.getMessage());
             }
         } catch (SQLException e) {
+           // 4.1. Insert 1 dòng dữ liệu vào control.log v status="Fail" and task_name="Transform Aggregate"
             System.err.println("Lỗi kết nối cơ sở dữ liệu control: " + e.getMessage());
             insertLog(properties, "Fail", "Transform Aggregate", "Lỗi kết nối cơ sở dữ liệu control: " + e.getMessage());
         }
+        //10.  Đóng  kết nối
     }
 
     // Phương thức insertLog
@@ -209,5 +192,24 @@ public class TransformAggregate {
         // Nếu trạng thái là "running" hoặc bất kỳ trạng thái nào khác ngoài "fail"
         return 0; // INFO
     }
+    private static boolean checkSQLLog(Connection connControl, Date runDate, String taskName) throws SQLException {
+        String checkLogSQL = "SELECT CASE WHEN status = 'Success' THEN 1 ELSE 0 END AS is_success "
+                + "FROM logs WHERE task_name = ? AND DATE(created_at) = ? "
+                + "ORDER BY created_at DESC LIMIT 1";
+
+        try (PreparedStatement ps = connControl.prepareStatement(checkLogSQL)) {
+            // Đặt tham số cho câu SQL
+            ps.setString(1, taskName); // Tên tác vụ
+            ps.setDate(2, new java.sql.Date(runDate.getTime())); // Ngày chạy
+
+            try (ResultSet resultSet = ps.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt("is_success") == 1;
+                }
+            }
+        }
+        return false;
+    }
+
 
 }
