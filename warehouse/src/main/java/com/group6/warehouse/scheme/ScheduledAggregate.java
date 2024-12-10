@@ -16,18 +16,20 @@ public class ScheduledAggregate {
 
     @Value("${custom.file.aggregatePath}")
     private String aggregatePath;
-
-    private static final int MAX_RETRIES = 5;  // Số lần thử tối đa
-    private static final int RETRY_DELAY_MS = 60000;  // Thời gian delay giữa các lần thử (1 phút = 60000 ms)
+    @Value("${retry.attempts}")
+    private  int MAX_RETRIES;  // Số lần thử tối đa
+    @Value("${retry.delay}")
+    private int RETRY_DELAY_MS;  // Thời gian delay giữa các lần thử (1 phút = 60000 ms)
     private int retryCount = 0;  // Biến đếm số lần thử lại
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
     // Lập lịch
-//    @Scheduled(cron = "0 35 0 * * 2,4,6")
-    @Scheduled(cron = "00 30 13 * * ?")
+
+    @Scheduled(cron = "00 30 00 * * 1,3,5")
     public void executeAggregateJar() {
         try {
+            System.out.println("------------------TRANSFORM AGGREGATE------------------");
             // Gọi phương thức thực thi file .jar
             runExternalExecutable();
 

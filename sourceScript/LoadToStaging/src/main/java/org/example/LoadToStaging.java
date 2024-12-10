@@ -93,14 +93,14 @@ public class LoadToStaging {
             String crawlDetails = getCrawlFileDetails(dbControlConnection, dateToLoad); // Ví dụ trả về "Directory: D:\\data_warehouse, Filename: crawled_data_laptop_"
             // Tách chuỗi crawlDetails thành một mảng
             String[] details = crawlDetails.split(", ");
-            // Kiểm tra xem mảng có đủ 2 phần tử không (directory_file và filename)
+            //Buocwsc 6.1: Kiểm tra xem mảng có đủ 3 phần tử không (directory_file và filename, name)
             if (details.length < 3) {
-                // Nếu không đủ 2 phần tử, ghi log và dừng chương trình lại
-                logToLogTable(dbControlConnection, idConfig, "LoadToStaging", "Fail", "CrawlData not success. Missing directory_file or filename.", "1", LocalDateTime.now());
-                emailSender.sendEmail(TO_EMAIL, "LoadToStaging", "CrawlData not success. Missing directory_file or filename.");
+                // Nếu không đủ 3 phần tử, ghi log và dừng chương trình lại
+                logToLogTable(dbControlConnection, idConfig, "LoadToStaging", "Fail", "CrawlData not success. Missing directory_file or filename,name.", "1", LocalDateTime.now());
+                emailSender.sendEmail(TO_EMAIL, "LoadToStaging", "CrawlData not success. Missing directory_file or filename,name.");
                 return;
             }
-            // Nếu mảng có đủ 2 phần tử, tiếp tục xử lý
+            // Nếu mảng có đủ 3 phần tử, tiếp tục xử lý
             String directoryFile = details[0].replace("Directory: ", ""); // Phần tử đầu tiên của chuỗi
             String filename = details[1].replace("Filename: ", "");
             String name = details[2].replace("Name: ", ""); // Phần tử thứ 2 của chuỗi// Phần tử thứ 2 của chuỗi

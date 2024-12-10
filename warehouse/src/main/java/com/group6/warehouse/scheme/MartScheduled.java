@@ -15,18 +15,20 @@ public class MartScheduled {
 
     @Value("${custom.file.loadMartPath}")
     private String loadMartPath;
-
-    private static final int MAX_RETRIES = 5;  // Số lần thử tối đa
-    private static final int RETRY_DELAY_MS = 60000;  // Thời gian delay giữa các lần thử (1 phút = 60000 ms)
+    @Value("${retry.attempts}")
+    private int MAX_RETRIES;  // Số lần thử tối đa
+    @Value("${retry.delay}")
+    private int RETRY_DELAY_MS;  // Thời gian delay giữa các lần thử (1 phút = 60000 ms)
     private int retryCount = 0;  // Biến đếm số lần thử lại
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
 
     // Lập lịch
-    @Scheduled(cron = "30 30 13 * * ?")
+    @Scheduled(cron = "00 35 00 * * 1,3,5")
     public void executeLoadMartJar() {
         try {
+            System.out.println("------------------LOAD DATA TO MART------------------");
             // Gọi phương thức thực thi file .jar
             runExternalExecutable();
 

@@ -1,106 +1,113 @@
 package com.group6.warehouse.scheme;
 
-import com.group6.warehouse.control.model.DataFileConfig;
-import com.group6.warehouse.control.model.LevelEnum;
-import com.group6.warehouse.control.model.Log;
-import com.group6.warehouse.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.mail.MessagingException;
-import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.sql.*;
-import java.time.LocalDate;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 
 @Component
 public class DataMigrationScript {
 
     @Value("${custom.file.statowhPath}")
-    private String pathScript;
-
+    private String statowhPath;
     @Value("${retry.attempts}")
-    private int retryCount;
-
+    private int MAX_RETRIES;  // Số lần thử tối đa
     @Value("${retry.delay}")
-    private int delay;
+    private int RETRY_DELAY_MS;  // Thời gian delay giữa các lần thử (1 phút = 60000 ms)
+    private int retryCount = 0;  // Biến đếm số lần thử lại
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
-    // Chạy vào lúc 0:00 các ngày Thứ Hai, Thứ Tư, Thứ Sáu
-    // syntax : giây phút giờ mọi ngày mọi tháng thứ 2,4,6
-    @Scheduled(cron = "30 29 13 * * 1,3,5,7")
-    public void TaskScheduler() {
-                executeTask();
+    // Lập lịch
+
+    @Scheduled(cron = "00 25 00 * * 1,3,5")
+    public void executeAggregateJar() {
+        try {
+            System.out.println("------------------Transform data to Datawarehouse------------------");
+            // Gọi phương thức thực thi file .jar
+            runExternalExecutable();
+
+            // Kiểm tra log mới nhất cho task_name là 'Transform Aggregate'
+            if (isFailLogDetected()) {
+                System.out.println("Fail log detected for Transform data. Retrying...");
+                retryTask(new IOException("Fail log detected for Transform data"));
+            } else {
+                System.out.println("Scheduled task completed successfully at: " + LocalDateTime.now());
+            }
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
-    public void retryTask() {
-        while (retryCount < 5) {
+    // Kiểm tra xem có "Fail" trong log của task_name 'Transform Aggregate' không
+    private boolean isFailLogDetected() {
+        // Truy vấn cơ sở dữ liệu để lấy log mới nhất cho task_name là 'Transform Aggregate'
+        String sql = "SELECT status FROM logs WHERE task_name = 'LoadFromStagingToDataWarehouse' ORDER BY id DESC LIMIT 1";
+
+        // Lấy trạng thái log từ cơ sở dữ liệu (giả sử có trường status và task_name trong bảng logs)
+        String status = jdbcTemplate.queryForObject(sql, String.class);
+
+        return "Fail".equalsIgnoreCase(status);  // Kiểm tra nếu trạng thái là "Fail"
+    }
+
+    // Phương thức thử lại tiến trình nếu trạng thái log là "Fail"
+    public void retryTask(Exception initialException) {
+        while (retryCount < MAX_RETRIES) {
             try {
                 retryCount++;
-                System.out.println("Retry attempt " + retryCount + "...");
-                Thread.sleep(delay);
-                executeTask();
-                System.out.println("Task executed successfully on attempt " + retryCount);
-                break;
-            } catch (InterruptedException e) {
+                System.out.println("Retry attempt " + retryCount + " started at: " + LocalDateTime.now());
+
+                // Kiểm tra lại trạng thái log trước khi quyết định retry
+                if (isFailLogDetected()) {
+                    System.out.println("Fail log detected for Transform data again. Retrying...");
+                    runExternalExecutable();  // Chạy lại tiến trình
+                } else {
+                    // Nếu lần retry thành công, dừng vòng lặp và không retry nữa
+                    System.out.println("Task executed successfully on attempt " + retryCount + " at: " + LocalDateTime.now());
+                    break;  // Dừng lại nếu log không phải "Fail"
+                }
+
+            } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
-                if (retryCount == 5) {
-                    System.out.println("Maximum retry attempts reached. Stopping.");
-                    break;
+                System.err.println("Error during attempt " + retryCount + ": " + e.getMessage());
+
+                if (retryCount == MAX_RETRIES) {
+                    System.err.println("Maximum retry attempts reached. Stopping at: " + LocalDateTime.now());
+                    break;  // Dừng retry nếu đã đạt số lần thử tối đa
+                }
+            }
+
+            // Nếu chưa đạt số lần thử tối đa, delay 1 phút trước khi thử lại
+            if (retryCount < MAX_RETRIES) {
+                try {
+                    System.out.println("Waiting for 1 minute before retrying... at: " + LocalDateTime.now());
+                    Thread.sleep(RETRY_DELAY_MS);  // Thời gian delay 1 phút
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    Thread.currentThread().interrupt();
                 }
             }
         }
     }
 
-    public void executeTask() {
-        try {
-            System.out.println("Scheduled task executed at: " + LocalDateTime.now());
-            runExternalExecutable();
-        } catch (IOException | SQLException | MessagingException e) {
-            System.out.println("Error! Check your file script or database");
-            e.printStackTrace();
-            retryTask();
-        }
-    }
-
-    public void runExternalExecutable() throws IOException, MessagingException, SQLException {
-        ProcessBuilder processBuilder = new ProcessBuilder("java","-jar", pathScript);
-        processBuilder.redirectErrorStream(true);
-        System.out.println("Loading...");
-        // execute file script to crawl data
+    // Phương thức chạy file .jar
+    public void runExternalExecutable() throws IOException, InterruptedException {
+        ProcessBuilder processBuilder = new ProcessBuilder("java", "-jar", statowhPath);
+        processBuilder.directory(new File("."));  // Thư mục làm việc hiện tại
         Process process = processBuilder.start();
+        int exitCode = process.waitFor();  // Chờ tiến trình hoàn thành
 
-        // print execution progress
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                System.out.println(line);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        // Kiểm tra trạng thái exit của tiến trình
+        if (exitCode != 0) {
+            System.err.println("Error executing jar file at: " + LocalDateTime.now() + ", exit code: " + exitCode);
+            throw new IOException("Error executing jar file, exit code: " + exitCode);  // Ném ngoại lệ nếu tiến trình không thành công
         }
-        int exitCode;
-        try {
-            exitCode = process.waitFor();
-            System.out.println("jar script executed with exit code: " + exitCode);
-            // Check status crawl
-            if (exitCode == 0) {
-                System.out.println("Script executed successfully!");
-            } else {
-                System.out.println("Script execution failed with exit code: " + exitCode);
-                throw new IOException();
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            throw new IOException();
-        }
-    }
 
-    public static void main(String[] args) {
-        System.out.println(LocalDateTime.now());
     }
 }
